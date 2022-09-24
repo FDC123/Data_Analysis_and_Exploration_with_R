@@ -1,0 +1,553 @@
+---
+title: "Data Analysis and Exploration with R: A Crash Course (Chapter 2)"
+author: "Faustino Delgado Camacho"
+date: "August 2022, V2 (english version)"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Chapter 2: Stacking the Blocks
+
+In this chapter we are going to look at more advanced functionalities related to what we saw in the previous chapter, which will allow us to develop more complex instructions.
+
+Chapter Content
+
+- 2.1 Conditional expressions (Continuation).
+- 2.2 Loops (Continuation).
+- 2.3 Vectorization (Continuation).
+
+
+### 2.1 Conditional expressions (Continuation).
+
+In the previous chapter we saw an introduction to how the `if`, `else` and `ifelse()` expressions work.
+
+Now we will see how these same expressions work if they are built *nested*.
+For this, we are going to introduce the new `else if` expression to the `if ... else` paradigm, thus having `if... else if ... else`.
+
+Similarly, you can make a *nested* `ifelse()` statement if you build it like this:
+
+```{r}
+# ifelse(condition 1,
+#        "instructions if condition 1 = TRUE",
+#        ifelse(condition 2,
+#               "instructions if condition 2 = TRUE",
+#               "instructions if condition 2 = FALSE"))
+```
+
+
+#### 2.1.1 *Nested* Conditional Expressions: `if... else if... else`
+
+Placing a conditional expression inside the body of another conditional expression is called *nesting conditional expressions*.
+
+Generally, conditional expressions are *nested*, when there are situations where there are several conditions of the same type to be evaluated.
+
+These structures are also known as *conditional strings*.
+
+Syntax:
+
+```{r}
+# if ( condition 1) {
+#  instructions block 1
+#   } else if ( condition 2) {
+#     instructions block 2 
+#     } else if ( condition 3) {
+#       instructions block 3
+#       } else {
+#         instructions block 4
+#         }
+```
+
+Example:
+
+Next we are going to evaluate if **the value** of the variable `age`, falls within the categories "minor", "adult" or "elderly"
+
+```{r}
+age<-c(17)                        # Assign to variable age, a number between 1 and 100
+
+if(age<18){                           # if (age < 18)
+  
+  print("Minor")                      # Print "Minor"
+  
+} else if (age>=18 & age<60) {        # Else, if (age>= 18 and < 60)
+  
+  print("Adult")                      # Print "Adult"
+  
+} else {                              # Else
+  
+  print("Elderly")                    # Print "Elderly"
+}
+
+```
+
+
+Now we are going to evaluate if **the values** of the variable `ages`, fall within the categories "Minor", "Adult" or "Elderly"
+
+```{r}
+library(magrittr)                         #We are going to use the %>% operator
+
+set.seed(5)                               # Set a random number generator state
+
+ages<-sample.int(100, 10)                 # Assign some numbers to the 'ages' variable 
+                                            # sample.int(range=1:100,sample size=10)  
+
+#?sample.int
+
+ifelse(ages<18,                           # If (ages < 18)
+       
+       "Minor",                           # Print "Minor"
+       
+       ifelse((ages>=18 & ages<60),       # Else, If (ages>=18 and ages<60)
+              
+              "Adult",                    # Print "Adult"
+              
+              "Elderly")) %>%             # Else, print "Elderly". Pipe the output.
+  
+  
+  cbind(.,ages)                           # Combine by columns: the output (.) with                                                # 'ages'
+
+```
+*Note: The "set.seed()" function allows us to make the pseudo-random selection by the "sample.int()" function reproducible in the session you are working on, which means that if you run the code block to generate the variable 'ages' once, it doesn't change if you consciously or unconsciously run the same block of code again. However, the numbers you get in your session will not be the same as in this document, so the results presented below will not be the same for everyone, but perhaps very similar.*
+
+#### 2.1.2 The `switch()` function
+
+The `switch()` function evaluates an expression against elements of a list. If the evaluated value of the expression matches any element in the list, the corresponding value is returned.
+
+The syntax is:
+
+```{r}
+# switch (expression,
+#   element 1 = action 1,
+#   element 2 = action 2
+# )
+
+```
+
+
+Perhaps it is easier to understand if we compare a case where we apply `if... else if... else` and `switch()`.
+
+In the next case, we are going to build a conditional expression, in which from the `calculate` variable we will be able to obtain the mean of the `data` variable, if `calculate` is equal to `"mean"`, the median if `calculate` equals `"median"` and the standard deviation if `calculate` equals `"st_dev"`.
+
+We will build the "if" statement first
+```{r}
+set.seed(1)                            
+
+
+data<-rnorm(n = 100,                  # Function "rnorm()" generates a vector of
+                                      # pseudo-random numbers with normal distribution,
+                                      # delimited by
+             mean = 0,                  # n number of elements, 
+                                        # a "mean" and "sd" = standard deviation.
+             
+             sd = 0.5 )
+
+calculate="mean"                        # Define "calculate" = "mean", "median"
+                                        # or "st_dev"
+
+
+
+
+if(calculate=="mean"){                  # If (calculate = "mean")
+  
+  print(paste("The mean of data is",    # Print: "The mean is mean(data)"
+              mean(data)))              
+  
+} else if (calculate=="median"){        # Else, if (calculate = "median")
+  
+  print(paste("The median of data is",  # Print: "The median is median(data)"
+              median(data)))           
+  
+} else if (calculate=="st_dev"){        # Else, if (calculate = "st_dev")
+  
+  print(paste("Standard deviation of data is", 
+                                        # Standard deviation is Print " sd(data)"
+              sd(data)))
+  
+} else{                                 # Else
+  print("Calculate expression is not valid")   
+                                        # Print: "Calculate expression is not valid"
+}
+
+
+```
+
+Let's do the same thing, but using `switch()`
+
+```{r}
+set.seed(1)
+
+datos<-rnorm(n = 100,
+             mean = 0,
+             sd = 0.5 )
+
+calculate="mean"
+
+
+switch (calculate,
+  mean = paste("The mean of data is ",
+                  mean(data)), 
+  median = paste("The meadian of data is ",
+                 median(data)),
+  st_dev = paste("The standard deviation of data is ", 
+                 sd(data))
+)
+```
+
+### 2.2 Loops (Continuation)
+
+We previously saw how the `for` loop works, which is the most basic and *"safe"* of loops. Safe because this loop is limited to a *"counter"*, which prevents this loop from becoming infinite by accident.
+
+Next we will see the other Loops available in R.
+
+#### 2.2.1 *Nested* `for` loop:
+
+Placing a loop inside the body of another loop is called *loop nesting*.
+
+When two loops are *nested*, the outer loop takes control of the number of complete repetitions of the inner loop. Therefore, the inner loop is executed *n* times for each execution of the outer loop.
+
+The syntax of a *nested* `for` loop would be:
+
+```{r}
+# for(i in 1:n)
+#   {
+#   for(j in 1:n)
+#     {
+#     instructions block
+#   }
+#   }
+```
+
+As an example, let's build a *nested* `for` loop that allows us to output of *n* multiplicands by *n* multipliers.
+
+```{r}
+multipliers<-c(1:10)
+multiplicands<-c(5:6)
+
+for(i in multiplicands){
+  for(j in multipliers){
+    print(paste(i," x ",j," is ",i*j))
+  }
+}
+```
+
+#### 2.2.2 The `break` statement
+
+The `break` statement is used as an "interruption button"  within a loop (`repeat`, `for`, `while`) to stop iterations and stream the output out of the loop.
+
+The syntax of this statement can be expressed as follows:
+
+```{r}
+# if (condition) {
+#   break
+#   }
+```
+
+
+Which means that if the condition is true, the loop will **STOP**, otherwise the loop gets executed.
+
+**Note**: The `break` statement can also be used within the `else` branch of the `if ...` `else` expression.
+
+Example
+
+```{r}
+x <- 1:5           # x is a sequence of integers from 1 to 5
+
+for (val in x) {   # for (each 'val' in x)
+  
+  if (val == 3){   # if val == 3
+   
+     break         # stop loop
+    
+    }              # (implied else):
+  
+  print(val)       # print "val"
+}                   
+```
+
+#### 2.2.3 The `next`statement
+
+The `next` statement is used to *skip* some given iteration of a loop by evaluating a condition, without terminating the loop.
+
+The syntax of this instruction is:
+
+```{r}
+# if (condition) {
+#   next
+#   }
+
+```
+Which means that if the condition is true, the loop will *skip* the corresponding iteration, and continue with the rest.
+
+**Note**: The `next` statement can also be used within the `else` branch of the `if ...` `else` expression.
+
+Example:
+
+```{r}
+
+x <- 1:5
+
+for (val in x) {        #for (each 'val' in x)
+  
+  if (val == 3){        # if val == 3
+    
+    next                # skip 'val' 
+                       
+    
+  }
+  
+  print(val)            # (implied else): print val
+  
+  }
+
+```
+
+In the example above, we used the `next` statement inside a condition to check if the value is equal to 3.
+
+If the value is equal to 3, the current evaluation stops (the value is not displayed on the console) but the loop continues with the next iteration.
+
+#### 2.2.4 The `while` loop
+
+The `while` loops start by evaluating a condition, if the condition is true, whatever is in the body of the loop is executed, once the loop is executed, the condition is evaluated again. This continues until the condition is false, at which point the loop stops executing.
+
+Another way to say it would be: *As long as* the condition is true, the loop will execute.
+
+The syntax of this loop is:
+
+
+```{r}
+# while(condition){
+#   instructions
+# }
+
+```
+
+Example:
+
+```{r}
+i <- 1                   # Initialize 'i' = 1
+
+while (i < 6) {          # while ('i' < 6)
+  
+  print(i)               # print 'i'
+  
+  i = i+1                # Assign to 'i' the new value of i+1, that is, 
+                         # we increase 'i' to 'i+1'
+  
+  }                      # The new 'i' gets evaluated by the same condition
+                         
+
+```
+
+The step of incrementing `i` to `i+1` is important, since declaring `i=i` would cause an infinite loop, since the `i>=6` condition would never be met. Care must be taken when constructing a `while` loop for this precise reason.
+
+#### 2.2.5 The `repeat` loop
+
+
+The `repeat` Loop is used to iterate over a block of code multiple times.
+
+There is no condition check to break out of the loop, so you must explicitly declare a condition within the loop body and use the `break` statement. Not doing so will result in an infinite loop.
+
+Syntax:
+
+```{r}
+# repeat {
+#   instruction
+#   exit condition
+# }
+```
+
+
+Example:
+
+```{r}
+
+x <- 1             # Initialize x = 1
+repeat {
+  
+  print(x)           # print x
+  
+  x = x+1            # x becomes x+1
+  
+  if (x == 6){       # if x = 6:
+   
+    break              # break the loop
+    
+    }               # if x != 6:
+                      # Repeat loop with x = x+1 
+}
+```
+
+
+### 2.3 Vectorization (Continuation)
+
+So far we have seen the use of loops in R, but you may be wondering, when to use loops in R? As a general rule, if we find ourselves in a situation where we need to repeat a task several times, then a loop can be useful. This makes our code more compact, readable, and above all easier to maintain and fix.
+
+However, the peculiar nature of R suggests not making use of loops in all situations where an iteration of instructions is required. As we saw in the first chapter, R has a feature that other programming languages do not have, *vectorization*.
+
+To see a little more in detail how vectorization works, we are going to solve a case, where we want to add the individual elements of 2 numeric vectors (`v1` and `v2`), using a vectorized process, and a for loop:
+
+Example using vectorization AND piping
+
+```{r}
+v1<- 1:4
+
+v2<- 5:8
+
+v1+v2 %>%
+
+rbind(v1,v2,.)
+
+```
+
+Using the `for` loop
+
+```{r}
+v1<- 1:4
+
+v2<- 5:8
+
+v3<-c() # Initialize v3 as an empty vector
+
+for (i in seq_along(v1)){  # for (each i in v1 sequence)
+  
+  v3[i]<-v1[i]+v2[i]       # We assign to each i in v3
+                           # The sum of i in v1 and v2
+}
+
+rbind(v1,v2,v3)
+
+# The "seq_along" function generates a sequence of the same length 
+# as the argument within the parentheses, and in the context of a 
+# for loop it is used to more easily generate the index to iterate over.
+```
+
+In the previous example we performed a sum with vectors of the same length. However, arithmetic operations can also be performed with vectors of different lengths.
+
+When we add two vectors of different length, R will recycle the elements of the smaller vector to match the larger one:
+
+```{r}
+v1<-1:10
+v2<-1:5
+
+v3<- v1+v2
+
+rbind(v1,v2,v3)
+```
+
+If the length of the largest vector is not a multiple of the length of the smallest vector, R will let us know with a message:
+
+```{r}
+v1<-1:5
+v2<-1:7
+
+v3<- v1+v2
+
+rbind(v1,v2,v3)
+```
+
+It is not recommended to do this type of operation, since this could lead to unexpected errors. This is why it is recommended to explicitly create vectors of the same length before working with them.
+
+Now we will see an example where we add a validation and length correction step to the previous example, where we will obtain the same result, but with the assurance that the code is explicitly doing what is expected:
+
+```{r}
+v1<-1:7
+v2<-1:5
+
+#Validation and correction of lengths of v1 and v2
+
+if (length(v1)==length(v2)){        
+  
+  v3<- v1+v2                        
+  
+} else if(length(v1)>length(v2)){   
+                                    
+  
+  v2<-rep_len(v2,                   
+              length(v1))           
+  
+}else {                             
+                                    
+  
+  v1<-rep_len(v1,                   
+              length(v2))           
+}
+
+# The function "rep_len(x,n)" will repeat the elements of x, up to length n.
+
+
+v3<- v1+v2                          # Once lengths of v1 or v2 are corrected, do sum
+                                    
+
+rbind(v1,v2,v3)
+```
+
+Now we will see an example where the correction step will consist of matching lengths, but repeating each element of the smallest vector 2 times, until matching the length of the largest vector, the result will be completely different from the previous example, but in essence is the same idea:
+
+
+```{r}
+v1<-1:7
+v2<-1:5
+
+#Validation and correction of lengths of v1 and v2, custom behaviour
+
+if (length(v1)==length(v2)){        
+  
+  v3<- v1+v2                        
+  
+} else if(length(v1)>length(v2)){   # Else, if length(v1)>length(v2)
+                                     
+  
+  v2<-rep(v2,                       # Repeat (the elements of v2, each x 2, 
+          each=2,                   # until reaching the length of v1)
+          length.out=length(v1))     
+  
+}else {                             # Else
+  v1<-rep(v1,                       # Repeat (the elements of v1, each x 2,
+          each=2,                   # until reaching the length of v2)
+          length.out=length(v1))    
+
+}
+
+# The function "rep(x,each,length.out)" will repeat the elements of 'x', 
+# 'each' times, until reaching length 'length.out'.
+
+
+v3<- v1+v2                          # Once the lengths of v1 or v2 are corrected
+                                    # do sum and assign it to v3
+
+rbind(v1,v2,v3)
+```
+
+There is also the option of using the `Vectorize()` function to be able to vectorize some functions in R. For example, if we wanted to obtain a list of vectors, whose content is n numbers, repeated z times each:
+
+```{r}
+# rep.int() works the same as rep() (but with intgrals), however, 
+# the Vectorize() function documentation indicates that it does 
+# not work with primitive functions, and rep() is one of these functions.
+
+# Observe the output of this funnction
+rep.int(1:4,4:1)
+
+# What we really want is something like this
+list(rep.int(1,4),
+     rep.int(2,3),
+     rep.int(3,2),
+     rep.int(4,1))
+
+# We can achieve this with:
+Vectorize(rep.int)(1:4,4:1)
+
+# Another option is to create a new function that does what we want
+vrep.int <- Vectorize(rep.int)
+vrep.int(1:4, 4:1)
+
+# Some extra customization
+vrep.int <- Vectorize(rep.int, "times")
+vrep.int(x = 1,times = 1:4)
+```
